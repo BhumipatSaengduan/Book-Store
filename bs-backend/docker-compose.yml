@@ -1,0 +1,54 @@
+# docker compose pull
+# docker compose build
+
+# docker compose up -d postgres
+# docker compose run --rm -it postgres psql -h postgres -U postgres
+#
+# copy sql instructions from scripts/create-user-db.sql
+# then press Control+D
+#
+# docker compose run --rm api npm run db:migrate
+# docker compose run --rm -e "ADMIN_PASSWORD=very_safe_admin_password" api node ./scripts/add-admin-user.js
+# docker compose up -d api
+
+name: bookStore
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: bs-database
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - bookStore-postgres:/var/lib/postgresql/data
+    networks:
+      - bookStore-net
+
+  api:
+    depends_on:
+      - postgres
+    build: .
+    command: npm run start:prod
+    container_name: bs-backend
+    ports: 
+      - 3000:3000
+    environment:
+      - NODE_OPTIONS=-r ts-node/register/transpile-only -r tsconfig-paths/register
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - UPLOAD_FOLDER_NAME=uploads
+    env_file:
+      - .env
+    volumes:
+      - bookStore-uploads:/app/uploads
+    networks:
+      - bookStore-net
+
+volumes:
+  bookStore-postgres:
+  bookStore-uploads:
+
+networks:
+  bookStore-net:

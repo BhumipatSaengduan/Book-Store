@@ -1,0 +1,15 @@
+name: bookStore # You can also change this to another name to avoid warning with existing group. 
+services:
+  frontend:
+    container_name: mywebfortest-main
+    build: .
+    ports:
+      - ${NGINX_PORT}:5173
+    networks:
+      - bookStore-net
+    environment:
+      - NGINX_PROXY=${NGINX_PROXY}
+      - NGINX_PORT=${NGINX_PORT}
+networks:
+  bookStore_bookStore-net: # Check by using `docker network ls` command
+    external: true
