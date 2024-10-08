@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
 const ADMIN_EMAIL = 'admin@localhost'
 
@@ -83,33 +84,34 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleGoogleLoginSuccess = async (response: any) => {
+    const token = response.credential;
+    try {
+      const res = await axios.post('/api/auth/google-login', { token });
+      localStorage.setItem('token', res.data.token); // เก็บ token ที่ได้รับจาก Google
+      navigate('/');
+    } catch (error) {
+      console.error('Google login failed:', error);
+      alert('Google login failed');
+    }
+  };
+
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <div className="flex flex-col items-center justify-center min-h-screen mx-auto my-10 font-sans">
         <div className="relative w-full max-w-screen-md min-h-[550px] bg-white rounded-lg overflow-hidden shadow-[0_14px_28px_rgba(0,0,0,0.25),_0_10px_10px_rgba(0,0,0,0.22)]">
+          
           {/* Registration Form */}
           <div className={`absolute inset-0 transition-all duration-600 w-1/2 ${isRightPanelActive ? 'opacity-100 z-10 translate-x-full' : 'opacity-0 z-0'}`}>
             <form className="flex flex-col items-center justify-center h-full text-center px-12" onSubmit={(e) => handleSubmit(e, 'register')}>
               <h1 className="text-2xl font-light tracking-wide mb-8">สร้างบัญชีใหม่</h1>
               <div className="mb-4">
                 <GoogleLogin
-                  onSuccess={(response) => {
-                    console.log('Google Login Success:', response);
-                    // เก็บข้อมูลผู้ใช้หรือตั้งค่า context ที่นี่
-                  }}
+                  onSuccess={handleGoogleLoginSuccess}
                   onError={() => console.log('Google Login Failed')}
                   containerProps={{ className: "rounded-full overflow-hidden p-0" }}
                 />
               </div>
-              {/* <input
-                className="bg-gray-200 p-3 my-2 w-full rounded-md"
-                type="text"
-                placeholder="Name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
-              {errors.name && <span className="text-red-500 text-sm mt-1">{errors.name}</span>} */}
               <input
                 className="bg-gray-200 p-3 my-2 w-full rounded-md"
                 type="email"
@@ -140,10 +142,7 @@ const Login: React.FC = () => {
               <h1 className="text-2xl font-light tracking-wide mb-8">เข้าสู่ระบบ</h1>
               <div className="mb-4">
                 <GoogleLogin
-                  onSuccess={(response) => {
-                    console.log('Google Login Success:', response);
-                    // เก็บข้อมูลผู้ใช้หรือตั้งค่า context ที่นี่
-                  }}
+                  onSuccess={handleGoogleLoginSuccess}
                   onError={() => console.log('Google Login Failed')}
                   containerProps={{ className: "rounded-full overflow-hidden p-0" }}
                 />
@@ -175,7 +174,7 @@ const Login: React.FC = () => {
           {/* Switch Panel */}
           <div className={`absolute top-0 left-1/2 w-full h-full transition-transform duration-600 ${isRightPanelActive ? 'transform -translate-x-full' : ''}`}>
             <div className="absolute inset-0 bg-gradient-to-r from-[#a27eb5] to-[#667848] text-white transform duration-600">
-                <div className="absolute inset-y-0 right-0 w-1/2 flex flex-col items-center justify-center px-10 text-center transition-transform duration-600">
+              <div className="absolute inset-y-0 right-0 w-1/2 flex flex-col items-center justify-center px-10 text-center transition-transform duration-600">
                 <h1 className="text-2xl font-light mb-6">ยินดีตอนรับกลับนะเพื่อน</h1>
                 <p className="mb-8">เข้าสู่ระบบเพื่อเชื่อมต่อกับเรา</p>
                 <button
@@ -185,7 +184,7 @@ const Login: React.FC = () => {
                   เข้าสู่ระบบ
                 </button>
               </div>
-            <div className="absolute inset-y-0 left-0 w-1/2 flex flex-col items-center justify-center px-10 text-center transition-transform duration-600">
+              <div className="absolute inset-y-0 left-0 w-1/2 flex flex-col items-center justify-center px-10 text-center transition-transform duration-600">
                 <h1 className="text-2xl font-light mb-6">สวัสดีเพื่อน</h1>
                 <p className="mb-8">สมัครสมาชิกและเริ่มการเดินทางกับเรา</p>
                 <button
