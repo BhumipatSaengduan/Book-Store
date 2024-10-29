@@ -193,7 +193,6 @@ export default class Book {
       .select(bookAllFields)
       .from(books)
       .innerJoin(usersToBooks, and(eq(usersToBooks.userId, user.id), eq(books.id, usersToBooks.bookId))); // get books that in the user's favorites
-    console.log(result);
     result = await addCategoriesToEachBooks(result);
 
     res.json(result);

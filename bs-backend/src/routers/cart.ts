@@ -1,7 +1,7 @@
 import "@passport/index";
 
 import { db } from "@/db";
-import { User, bookAllFields, books, carts, cartsToBooks } from "@/db/schema";
+import { User, books, carts, cartsToBooks } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { NextFunction, Request, Response, Router } from "express";
 import { isAuthenticated } from "./auth";
@@ -26,9 +26,18 @@ export default class Cart {
   async getItems(req: Request, res: Response) {
     const userId = (req.user as User).id;
     let items = await db
-      .select(bookAllFields)
+      .select({
+        id: books.id,
+        title: books.title,
+        coverImage: books.coverImage,
+        description: books.description,
+        stocksAvailable: books.stocksAvailable,
+        price: books.price,
+        createdAt: books.createdAt,
+        amount: cartsToBooks.amount,
+      })
       .from(books)
-      .innerJoin(cartsToBooks, eq(cartsToBooks.cartId, userId)); // the book needs to be in the cart
+      .innerJoin(cartsToBooks, and(eq(cartsToBooks.cartId, userId), eq(cartsToBooks.bookId, books.id))); // the book needs to be in the cart
     items = await addCategoriesToEachBooks(items);
 
     let totalPrice = 0;
@@ -105,7 +114,8 @@ export default class Cart {
       // decrease book's stocks and increase book's sold
       await db
         .update(books)
-        .set({ stocksAvailable: item.stocksAvailable - item.amount, sold: item.sold + item.amount });
+        .set({ stocksAvailable: item.stocksAvailable - item.amount, sold: item.sold + item.amount })
+        .where(eq(books.id, item.id));
     }
 
     await db.delete(carts).where(eq(carts.id, userId));
@@ -124,6 +134,6 @@ function getDataFromBody(body: any) {
   const { bookId, amount } = body;
   return {
     bookId: Number(bookId),
-    amount: amount ?? "" ? Number(amount) : 1,
+    amount: typeof amount === "number" ? amount : 1,
   };
 }

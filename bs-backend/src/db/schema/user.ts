@@ -29,7 +29,7 @@ export const usersToBooks = pgTable(
       .references(() => books.id, { onDelete: "cascade" }),
     userId: integer("user_id")
       .notNull()
-      .references(() => books.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
   },
   (t) => ({ pk: primaryKey({ columns: [t.bookId, t.userId] }) })
 );

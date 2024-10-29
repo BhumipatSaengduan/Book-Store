@@ -1,5 +1,5 @@
 {
-  "name": "animeb-api",
+  "name": "bs-backend",
   "scripts": {
     "build": "tsc",
     "start": "ts-node src/index.ts",

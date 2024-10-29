@@ -16,6 +16,7 @@ export default class Category {
 
   register() {
     this.router.get("/", this.get);
+    this.router.get("/:categoryId", this.getById);
     this.router.post("/", isAuthenticated, isAdmin, this.add);
     this.router.put("/:categoryId", isAuthenticated, isAdmin, this.update);
     this.router.delete("/:categoryId", isAuthenticated, isAdmin, this.delete);
@@ -60,6 +61,16 @@ export default class Category {
     }
   }
 
+  async getById(req: Request, res: Response) {
+    const categoryId = Number(req.params.categoryId);
+    if (Number.isNaN(categoryId)) return res.status(400).json({ message: "invalid category id" });
+
+    const category = await db.query.categories.findFirst({ where: eq(categories.id, categoryId) });
+    if (!category) return res.status(404).json({ message: "not found" });
+
+    res.json(category);
+  }
+
   async add(req: Request, res: Response) {
     let data;
     try {
@@ -74,7 +85,7 @@ export default class Category {
 
   async update(req: Request, res: Response) {
     const categoryId = Number(req.params.categoryId);
-    if (Number.isNaN(categoryId)) return res.status(400).json({ message: "invalid category id" })
+    if (Number.isNaN(categoryId)) return res.status(400).json({ message: "invalid category id" });
 
     let data;
     try {
@@ -90,7 +101,7 @@ export default class Category {
 
   async delete(req: Request, res: Response) {
     const categoryId = Number(req.params.categoryId);
-    if (Number.isNaN(categoryId)) return res.status(400).json({ message: "invalid category id" })
+    if (Number.isNaN(categoryId)) return res.status(400).json({ message: "invalid category id" });
 
     const returning = await db.delete(categories).where(eq(categories.id, categoryId)).returning();
     if (returning[0]) res.status(204).end();
